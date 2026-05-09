@@ -1,0 +1,41 @@
+# API
+fastapi==0.115.6
+uvicorn[standard]==0.32.1
+python-multipart==0.0.20
+
+# Google Gemini (embeddings)
+google-genai==1.0.0
+
+# Qdrant
+qdrant-client==1.12.1
+
+# PostgreSQL
+asyncpg==0.30.0
+psycopg2-binary==2.9.10
+sqlalchemy==2.0.36
+
+# Redis
+redis==5.2.1
+
+# Procesamiento de documentos
+pypdf==5.1.0
+python-docx==1.1.2
+pydub==0.25.1          # audio splitting
+moviepy==1.0.3         # video splitting
+pillow==11.0.0
+
+# LLMs
+anthropic==0.40.0
+openai==1.57.4         # DeepSeek usa API compatible con OpenAI
+
+# CrewAI
+crewai==0.83.0
+crewai-tools==0.17.0
+
+# Utilidades
+pydantic==2.10.3
+pydantic-settings==2.7.0
+python-dotenv==1.0.1
+httpx==0.28.1
+tenacity==9.0.0        # reintentos
+structlog==24.4.0      # logging estructurado

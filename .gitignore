@@ -1,0 +1,47 @@
+# Secrets / env
+.env
+*.secret
+*.key
+*.pem
+*.p12
+*.pfx
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.egg-info/
+dist/
+build/
+.venv/
+venv/
+env/
+
+# Node
+node_modules/
+npm-debug.log*
+
+# Docker volumes / data
+qdrant/
+redis/
+minio/
+postgres/data/
+mysql/data/
+
+# Logs
+*.log
+logs/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Claude internal
+.claude/
