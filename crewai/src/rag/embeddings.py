@@ -1,7 +1,7 @@
 """
 Cliente Gemini Embedding 2 — multimodal (texto, audio, vídeo, imagen, PDF)
 Modelo: gemini-embedding-2-preview
-Dimensiones: 1536 (MRL)
+Dimensiones: 3072 (Full)
 """
 import base64
 import asyncio

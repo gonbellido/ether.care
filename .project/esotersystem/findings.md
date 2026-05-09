@@ -69,3 +69,22 @@ contexto actual.
 2. Añadir límite de caracteres en `POST /tts` (2000 chars max)
 3. Si se expone a internet: API Key + rate limit + HTTPS vía nginx
 4. Evaluar Piper TTS como alternativa local a Edge TTS para español
+
+## Revisión General y Correcciones de Integración (Jules - 2026-04-04)
+
+### 1. Corrección de Puertos y Conectividad
+- Se detectó que `livekit-agent` intentaba conectar a Whisper en el puerto 8080, el cual es el puerto externo. Se corrigió al puerto 8000 para comunicación interna entre contenedores Docker.
+- Se sincronizaron las dimensiones de embeddings a 3072 (Full) en todo el proyecto, corrigiendo discrepancias entre el código (config.py) y la documentación/setup de Qdrant.
+
+### 2. Implementación de Journey Management
+- Se implementó el `JourneyManager` en `crewai/src/agents/journey_manager.py` para gestionar el estado de las sesiones en la base de datos MySQL `diagnostico`.
+- Se añadieron endpoints a la API de CrewAI (`/journey/{session_id}` y `/journey/update`) para permitir que n8n u otros servicios consulten y actualicen el progreso del usuario en los 10 pasos terapéuticos.
+
+### 3. Reducción de Latencia Percibida (Animator)
+- Se incorporó la lógica del "Agente de Interfaz" (Animador) directamente en el `livekit-agent`. Ahora, el sistema emite frases de relleno ("Entiendo...", "Déjame ver...") mientras espera la respuesta pesada de n8n/RAG, mejorando significativamente la experiencia de usuario en voz.
+
+### 4. Estructuración de Agentes CrewAI
+- Se crearon las clases base y específicas para los agentes principales (`ProfilerAgent`, `AdvisorAgent`, `KnowledgeCuratorAgent`) en el directorio `crewai/src/agents/`, siguiendo las especificaciones de `agents.md`.
+
+### 5. Dependencias
+- Se añadió `aiomysql` a `crewai/requirements.txt` para soportar la conexión asíncrona con la base de datos de diagnóstico.

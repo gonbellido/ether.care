@@ -39,3 +39,4 @@ python-dotenv==1.0.1
 httpx==0.28.1
 tenacity==9.0.0        # reintentos
 structlog==24.4.0      # logging estructurado
+aiomysql==0.2.0

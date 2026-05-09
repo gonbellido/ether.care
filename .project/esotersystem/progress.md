@@ -33,7 +33,7 @@
 ## 2026-04-04 — Sesión 3: Stack de embeddings y LLM definidos
 
 - [x] Gemini Embedding 2 Preview (multimodal: texto 8192 tokens, audio 80s, vídeo 120s, PDF 6 pág.)
-- [x] Qdrant como base vectorial (colección `esoter_knowledge`, cosine, 1536 dims MRL)
+- [x] Qdrant como base vectorial (colección `esoter_knowledge`, cosine, 3072 dims)
 - [x] Estrategia LLM híbrida:
   - Claude → perfilado inicial + primera lectura (conversión)
   - DeepSeek V3 / Kimi K2 → lecturas post-perfil, análisis Monitor
@@ -353,3 +353,11 @@ y llama al subagente de Tarot cuando el usuario lo solicita.
 - WhatsApp: `wa:{phone}` (ej. `wa:5491112345678`)
 - Instagram: `ig:{ig_user_id}`
 - Facebook: `fb:{psid}`
+
+### Actualización 2026-04-04 (Jules)
+- [x] Corrección de conectividad Whisper (puerto 8000 internal)
+- [x] Sincronización de dimensiones Gemini Embedding (3072)
+- [x] Implementación de JourneyManager (MySQL transition logic)
+- [x] Implementación de Agente de Interfaz (Fillers en LiveKit)
+- [x] Scaffolding de Agentes CrewAI (Profiler, Advisor, Curator)
+- [x] Endpoints de Journey en API FastAPI

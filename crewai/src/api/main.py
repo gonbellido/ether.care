@@ -5,7 +5,7 @@ Puerto 8000: API de agentes + ingesta RAG
 import shutil
 import tempfile
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Dict, Any
 from fastapi import FastAPI, UploadFile, File, Form, HTTPException, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -17,6 +17,7 @@ from src.db.knowledge_db import list_documents, get_document_by_hash
 from src.config import get_settings
 from src.wiki.router import router as wiki_router
 from src.wiki.wiki_qdrant import ensure_wiki_collection
+from src.agents.journey_manager import JourneyManager
 
 import structlog
 log = structlog.get_logger()
@@ -53,6 +54,29 @@ async def health():
     return {"status": "ok", "service": "esotersystem-api"}
 
 
+# ─── JOURNEY MANAGEMENT ──────────────────────────────────────
+
+class JourneyUpdate(BaseModel):
+    session_id: str
+    user_id: str
+    step: int
+    data: Dict[str, Any]
+    status: str = "active"
+
+@app.get("/journey/{session_id}")
+async def get_journey(session_id: str):
+    jm = JourneyManager()
+    return await jm.get_session_state(session_id)
+
+@app.post("/journey/update")
+async def update_journey(update: JourneyUpdate):
+    jm = JourneyManager()
+    await jm.update_session_state(
+        update.session_id, update.user_id, update.step, update.data, update.status
+    )
+    return {"message": "Journey updated"}
+
+
 # ─── RAG: INGESTA DE DOCUMENTOS ──────────────────────────────
 
 @app.post("/rag/ingest", summary="Subir documento al RAG")
@@ -82,7 +106,7 @@ async def ingest_endpoint(
         )
 
     # Validar sistema esotérico
-    valid_systems = ["bioneuroemocion", "general", "otro"]
+    valid_systems = ["bioneuroemocion", "general", "otro", "tarot", "astrologia"]
     if esoteric_system not in valid_systems:
         raise HTTPException(
             status_code=400,
