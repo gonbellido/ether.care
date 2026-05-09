@@ -1,16 +1,14 @@
 """
 Esoter Therapist - LiveKit Voice Agent
 =======================================
-Agente de voz en tiempo real que:
-  - Escucha al usuario (Deepgram STT en español)
-  - Envía la transcripción a n8n (cerebro/RAG/agentes)
-  - Reproduce la respuesta con Cartesia TTS (voz española)
-
-Compatible con livekit-agents 1.x
+Agente de voz en tiempo real con "Agente de Interfaz" (Animador)
+para reducir la latencia percibida.
 """
 
 import logging
 import os
+import asyncio
+import random
 from typing import AsyncIterator
 
 import aiohttp
@@ -40,17 +38,18 @@ CARTESIA_VOICE_ID = os.environ.get(
     "13ff5deb-2591-42ad-a356-63a04e524411",
 )
 
-WHISPER_URL = os.environ.get("WHISPER_URL", "http://whisper:8080/v1")
+WHISPER_URL = os.environ.get("WHISPER_URL", "http://whisper:8000/v1")
 
+FILLERS = [
+    "Entiendo perfectamente lo que me dices...",
+    "Déjame conectar eso con lo que sabemos...",
+    "Es un punto muy importante el que tocas...",
+    "Te escucho con atención, déjame ver...",
+    "Comprendo esa sensación...",
+]
 
 # ─── LLM personalizado que llama a n8n ────────────────────────
 class N8NLLM(agents_llm.LLM):
-    """
-    Wrapper que hace pasar a n8n como si fuera un LLM.
-    LiveKit envía la transcripción aquí, n8n procesa con su RAG/agentes
-    y devuelve texto que LiveKit manda al TTS.
-    """
-
     def __init__(self, webhook_url: str, timeout: int = 30):
         super().__init__()
         self._webhook_url = webhook_url
@@ -85,8 +84,6 @@ class N8NLLM(agents_llm.LLM):
 
 
 class N8NStream(agents_llm.LLMStream):
-    """Stream de una sola respuesta devuelta por n8n."""
-
     def __init__(self, llm: N8NLLM, chat_ctx, tools, conn_options):
         super().__init__(
             llm, chat_ctx=chat_ctx, tools=tools, conn_options=conn_options
@@ -94,7 +91,6 @@ class N8NStream(agents_llm.LLMStream):
         self._n8n_llm = llm
 
     async def _run(self):
-        # Extrae el último mensaje del usuario
         text = ""
         if self._chat_ctx and self._chat_ctx.items:
             last = self._chat_ctx.items[-1]
@@ -102,8 +98,17 @@ class N8NStream(agents_llm.LLMStream):
                 getattr(last, "content", "")
             )
 
-        # Metadata útil (session id = nombre de la room)
         session_id = os.environ.get("LIVEKIT_ROOM_NAME", "default")
+
+        # Agente de Interfaz: Emitir un "relleno" si el mensaje es largo
+        if len(text) > 20:
+            filler = random.choice(FILLERS)
+            logger.info("Enviando relleno: %s", filler)
+            chunk = agents_llm.ChatChunk(
+                id="filler",
+                delta=agents_llm.ChoiceDelta(role="assistant", content=filler + " "),
+            )
+            self._event_ch.send_nowait(chunk)
 
         response_text = "Disculpa, no pude procesarlo. ¿Puedes repetirlo?"
         try:
@@ -125,13 +130,10 @@ class N8NStream(agents_llm.LLMStream):
                         or response_text
                     )
                 else:
-                    logger.warning(
-                        "n8n respondió %s: %s", resp.status, await resp.text()
-                    )
+                    logger.warning("n8n respondió %s", resp.status)
         except Exception as e:
             logger.exception("Error llamando a n8n: %s", e)
 
-        # Emite el texto como un único chunk
         chunk = agents_llm.ChatChunk(
             id="n8n-response",
             delta=agents_llm.ChoiceDelta(role="assistant", content=response_text),
@@ -144,7 +146,6 @@ async def entrypoint(ctx: JobContext):
     logger.info("Conectando a la sala %s", ctx.room.name)
     await ctx.connect()
 
-    # Exporta el nombre de la sala para usarlo como session_id
     os.environ["LIVEKIT_ROOM_NAME"] = ctx.room.name
 
     session = AgentSession(
@@ -168,18 +169,14 @@ async def entrypoint(ctx: JobContext):
         instructions=(
             "Eres un asistente espiritual y terapéutico de Esoter. "
             "Hablas siempre en español, con tono cálido y empático. "
-            "Tus respuestas las genera un sistema RAG externo; "
-            "limítate a transmitir la respuesta recibida."
+            "Tus respuestas las genera un sistema RAG externo."
         )
     )
 
     await session.start(agent=agent, room=ctx.room)
-
-    # Saludo inicial
     await session.say("Hola, soy tu acompañante de Esoter. ¿En qué puedo ayudarte?")
 
 
-# ─── Arranque del Worker ──────────────────────────────────────
 if __name__ == "__main__":
     cli.run_app(
         WorkerOptions(

@@ -30,7 +30,7 @@ El patrón consiste en un directorio `raw/` como fuente de verdad, un "compilado
 
 ### Colección Qdrant para la wiki
 - Separar de `esoter_knowledge` (base de conocimiento esotérico) para evitar contaminación de búsquedas.
-- Nueva colección: `wiki_knowledge` — mismas dimensiones (1536 MRL cosine) que la existente.
+- Nueva colección: `wiki_knowledge` — mismas dimensiones (3072 cosine) que la existente.
 - Metadatos del chunk: `source_file`, `article_slug`, `chunk_index`, `topic`, `date`, `content_type`.
 
 ### LLM para el compiler

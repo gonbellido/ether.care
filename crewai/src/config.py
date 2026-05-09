@@ -24,6 +24,13 @@ class Settings(BaseSettings):
     redis_port: int = 6379
     redis_password: str = ""
 
+    # MySQL (Diagnóstico)
+    mysql_host: str = "mysql"
+    mysql_port: int = 3306
+    mysql_database: str = "diagnostico"
+    mysql_user: str = "root"
+    mysql_password: str = ""
+
     # LLMs
     anthropic_api_key: str = ""
     deepseek_api_key: str = ""
