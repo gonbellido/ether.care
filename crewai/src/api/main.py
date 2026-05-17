@@ -118,12 +118,15 @@ async def execute_journey_step(req: JourneyExecuteRequest):
         status="active" if result["next_step"] < 10 else "completed"
     )
 
+    journey = engine.load_journey(req.journey_id)
+    current_step_config = next((s for s in journey["steps"] if s["step"] == current_step), None)
+
     return {
         "response_text": result["response_text"],
         "next_step": result["next_step"],
-        "step_name": f"Paso {result['next_step']}", # Podríamos sacar el nombre real del JSON
+        "step_name": current_step_config["name"] if current_step_config else f"Paso {current_step}",
         "extracted_data": result["extracted_data"],
-        "session_complete": result["next_step"] >= 10 and state["step"] == 10
+        "session_complete": result["next_step"] >= 10 and current_step == 10
     }
 
 

@@ -19,6 +19,9 @@ class JourneyEngine:
         )
         self.journeys_path = "journeys"
 
+    def load_journey(self, journey_id: str) -> Dict[str, Any]:
+        return self._load_journey_file(journey_id)
+
     def _load_journey_file(self, journey_id: str) -> Dict[str, Any]:
         file_path = os.path.join(self.journeys_path, f"{journey_id}.json")
         if not os.path.exists(file_path):
