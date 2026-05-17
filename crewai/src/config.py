@@ -3,6 +3,10 @@ from functools import lru_cache
 
 
 class Settings(BaseSettings):
+    # Meta
+    meta_verify_token: str = ""
+    meta_access_token: str = ""
+    meta_whatsapp_phone_id: str = ""
     # Google Gemini
     google_api_key: str = ""
 

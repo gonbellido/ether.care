@@ -117,8 +117,8 @@ services:
   # ─── CREWAI (Orquestador de agentes autónomos) ────
   crewai:
     build:
-      context: ./crewai
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: crewai/Dockerfile
     container_name: esoter_crewai
     restart: unless-stopped
     environment:
