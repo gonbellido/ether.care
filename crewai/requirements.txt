@@ -42,5 +42,6 @@ tenacity==9.0.0        # reintentos
 structlog==24.4.0      # logging estructurado
 aiomysql==0.2.0
 jinja2>=3.1.0
+setuptools>=65,<71
 pytest>=8.0.0
 pytest-asyncio>=0.23.0

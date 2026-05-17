@@ -13,6 +13,7 @@ WORKDIR /app
 
 # Instalar dependencias Python
 COPY crewai/requirements.txt .
+RUN pip install --upgrade pip "setuptools<71"
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copiar código fuente y canales
