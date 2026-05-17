@@ -7,7 +7,7 @@ import tempfile
 import json
 from pathlib import Path
 from typing import Optional, Dict, Any
-from fastapi import FastAPI, UploadFile, File, Form, HTTPException, BackgroundTasks
+from fastapi import FastAPI, UploadFile, File, Form, HTTPException, BackgroundTasks, Header, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
@@ -20,6 +20,7 @@ from src.wiki.router import router as wiki_router
 from src.wiki.wiki_qdrant import ensure_wiki_collection
 from src.agents.journey_manager import JourneyManager
 from src.engine.journey_engine import JourneyEngine
+from src.agents.journey_builder_agent import JourneyBuilderAgent
 
 import structlog
 log = structlog.get_logger()
@@ -47,6 +48,15 @@ async def startup():
     ensure_collection()
     ensure_wiki_collection()
     log.info("EsoterSystem API iniciada — colecciones Qdrant listas")
+
+
+# ─── AUTH ──────────────────────────────────────────────────
+
+def verify_admin_key(x_admin_key: Optional[str] = Header(None)):
+    settings = get_settings()
+    if not x_admin_key or x_admin_key != settings.admin_api_key:
+        raise HTTPException(status_code=403, detail="Invalid Admin API Key")
+    return x_admin_key
 
 
 # ─── HEALTH ──────────────────────────────────────────────────
@@ -128,6 +138,33 @@ async def execute_journey_step(req: JourneyExecuteRequest):
         "extracted_data": result["extracted_data"],
         "session_complete": result["next_step"] >= 10 and current_step == 10
     }
+
+
+# ─── JOURNEY BUILDER ────────────────────────────────────────
+
+class JourneyBuildRequest(BaseModel):
+    description: str
+    journey_id: str
+
+@app.post("/journey/build", summary="Construir un nuevo journey con IA")
+async def build_journey(req: JourneyBuildRequest, admin_key: str = Depends(verify_admin_key)):
+    """
+    Genera un archivo JSON de journey a partir de una descripción en lenguaje natural.
+    Requiere header X-Admin-Key.
+    """
+    try:
+        agent = JourneyBuilderAgent()
+        journey = await agent.generate_journey(req.description, req.journey_id)
+        return {
+            "journey_id": req.journey_id,
+            "steps_count": len(journey.get("steps", [])),
+            "journey": journey
+        }
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        log.error("Error building journey", error=str(e))
+        raise HTTPException(status_code=500, detail=f"Internal Server Error: {str(e)}")
 
 
 # ─── RAG: INGESTA DE DOCUMENTOS ──────────────────────────────
