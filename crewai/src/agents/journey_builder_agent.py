@@ -4,13 +4,16 @@ import os
 from pathlib import Path
 from typing import Dict, Any, Optional
 import jsonschema
-from anthropic import AsyncAnthropic
+from openai import AsyncOpenAI
 from src.config import get_settings
 
 class JourneyBuilderAgent:
     def __init__(self):
         self.settings = get_settings()
-        self.client = AsyncAnthropic(api_key=self.settings.anthropic_api_key)
+        self.client = AsyncOpenAI(
+            api_key=self.settings.deepseek_api_key,
+            base_url="https://api.deepseek.com/v1"
+        )
 
         # Determine the base directory for journeys
         # If running in the container, it might be /app/journeys
@@ -89,16 +92,16 @@ Instrucciones:
             raise Exception(f"Error generating or validating journey: {str(e)}")
 
     async def _call_claude(self, system_prompt: str, user_message: str) -> Dict[str, Any]:
-        response = await self.client.messages.create(
-            model="claude-sonnet-4-6",
+        response = await self.client.chat.completions.create(
+            model="deepseek-chat",
             max_tokens=4096,
-            system=system_prompt,
             messages=[
+                {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_message}
             ]
         )
 
-        content = response.content[0].text.strip()
+        content = response.choices[0].message.content.strip()
 
         # Attempt to extract JSON if Claude included other text
         json_match = re.search(r"(\{.*\})", content, re.DOTALL)
