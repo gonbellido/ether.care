@@ -1,0 +1,41 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Journey Specification",
+  "type": "object",
+  "properties": {
+    "journey_id": { "type": "string" },
+    "name": { "type": "string" },
+    "version": { "type": "string" },
+    "description": { "type": "string" },
+    "steps": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "step": { "type": "integer" },
+          "name": { "type": "string" },
+          "agent_role": { "type": "string" },
+          "system_prompt": { "type": "string" },
+          "user_prompt_template": { "type": "string" },
+          "expected_output": { "type": "object" },
+          "transitions": {
+            "type": "object",
+            "additionalProperties": { "type": "integer" }
+          },
+          "llm": {
+            "type": "object",
+            "properties": {
+              "model": { "type": "string" },
+              "temperature": { "type": "number" },
+              "max_tokens": { "type": "integer" }
+            },
+            "required": ["model"]
+          },
+          "rag_query": { "type": "string" }
+        },
+        "required": ["step", "name", "agent_role", "system_prompt", "user_prompt_template", "expected_output", "transitions", "llm"]
+      }
+    }
+  },
+  "required": ["journey_id", "name", "version", "steps"]
+}

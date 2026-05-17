@@ -4,6 +4,7 @@ Puerto 8000: API de agentes + ingesta RAG
 """
 import shutil
 import tempfile
+import json
 from pathlib import Path
 from typing import Optional, Dict, Any
 from fastapi import FastAPI, UploadFile, File, Form, HTTPException, BackgroundTasks
@@ -18,6 +19,7 @@ from src.config import get_settings
 from src.wiki.router import router as wiki_router
 from src.wiki.wiki_qdrant import ensure_wiki_collection
 from src.agents.journey_manager import JourneyManager
+from src.engine.journey_engine import JourneyEngine
 
 import structlog
 log = structlog.get_logger()
@@ -63,6 +65,12 @@ class JourneyUpdate(BaseModel):
     data: Dict[str, Any]
     status: str = "active"
 
+class JourneyExecuteRequest(BaseModel):
+    journey_id: str
+    session_id: str
+    user_id: str
+    user_message: str
+
 @app.get("/journey/{session_id}")
 async def get_journey(session_id: str):
     jm = JourneyManager()
@@ -75,6 +83,48 @@ async def update_journey(update: JourneyUpdate):
         update.session_id, update.user_id, update.step, update.data, update.status
     )
     return {"message": "Journey updated"}
+
+@app.post("/journey/execute")
+async def execute_journey_step(req: JourneyExecuteRequest):
+    jm = JourneyManager()
+    engine = JourneyEngine()
+
+    # 1. Obtener estado actual
+    state = await jm.get_session_state(req.session_id)
+    current_step = state["step"]
+    session_data = state["data"]
+
+    # 2. Ejecutar paso con el engine
+    try:
+        result = await engine.execute_step(
+            journey_id=req.journey_id,
+            current_step_num=current_step,
+            user_message=req.user_message,
+            session_data=session_data
+        )
+    except Exception as e:
+        log.error("Error en execute_step", error=str(e))
+        raise HTTPException(status_code=500, detail=str(e))
+
+    # 3. Actualizar estado
+    # Si el next_step es igual al current_step y ya hay datos, podríamos considerar avanzar
+    # Pero el engine ya decide el next_step basado en la lógica del JSON.
+
+    await jm.update_session_state(
+        session_id=req.session_id,
+        user_id=req.user_id,
+        step=result["next_step"],
+        data=result["updated_session_data"],
+        status="active" if result["next_step"] < 10 else "completed"
+    )
+
+    return {
+        "response_text": result["response_text"],
+        "next_step": result["next_step"],
+        "step_name": f"Paso {result['next_step']}", # Podríamos sacar el nombre real del JSON
+        "extracted_data": result["extracted_data"],
+        "session_complete": result["next_step"] >= 10 and state["step"] == 10
+    }
 
 
 # ─── RAG: INGESTA DE DOCUMENTOS ──────────────────────────────
