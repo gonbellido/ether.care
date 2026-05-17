@@ -5,7 +5,6 @@
   "properties": {
     "journey_id": { "type": "string", "pattern": "^[a-z0-9-]+$" },
     "name": { "type": "string" },
-    "version": { "type": "string" },
     "description": { "type": "string" },
     "steps": {
       "type": "array",
@@ -37,5 +36,5 @@
       }
     }
   },
-  "required": ["journey_id", "name", "version", "steps"]
+  "required": ["journey_id", "name", "description", "steps"]
 }

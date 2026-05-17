@@ -54,9 +54,18 @@ La especificación debe seguir estrictamente el siguiente esquema JSON:
 Instrucciones:
 1. Analiza la descripción del journey proporcionada por el usuario.
 2. Define los pasos (steps) necesarios para cumplir con el journey de forma coherente.
-3. Para cada paso, define un 'role', 'goal' y 'backstory' detallados y apropiados para un agente de CrewAI.
+3. Cada paso debe tener los campos:
+   - step (int): Número de paso.
+   - name: Nombre corto del paso.
+   - agent_role: Rol detallado para el agente de CrewAI.
+   - system_prompt: Instrucciones del sistema para el agente.
+   - user_prompt_template: Template para el mensaje del usuario (usando {{user_input}}).
+   - expected_output: Un objeto JSON Schema que describe la salida esperada.
+   - transitions: Un diccionario de 'condicion' -> número de paso (int).
+   - llm: Objeto con model (ej: 'deepseek-chat'), temperature (0.0-1.0) y max_tokens.
+   - rag_query (opcional): Query para búsqueda semántica si el paso lo requiere.
 4. El 'journey_id' en el JSON resultante DEBE ser exactamente '{journey_id}'.
-5. Devuelve ÚNICAMENTE el objeto JSON válido. No incluyas explicaciones adicionales, ni bloques de código markdown (como ```json ... ```).
+5. Devuelve ÚNICAMENTE el objeto JSON válido. No incluyas explicaciones adicionales, ni bloques de código markdown.
 """
 
         user_message = f"Descripción del journey: {description}\njourney_id: {journey_id}"
