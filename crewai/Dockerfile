@@ -12,11 +12,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 WORKDIR /app
 
 # Instalar dependencias Python
-COPY requirements.txt .
+COPY crewai/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copiar código fuente
-COPY src/ ./src/
+# Copiar código fuente y canales
+COPY crewai/src/ ./src/
+COPY channels/ ./channels/
 
 # Directorio para uploads temporales
 RUN mkdir -p /app/uploads /app/logs

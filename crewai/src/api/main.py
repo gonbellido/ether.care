@@ -22,6 +22,12 @@ from src.agents.journey_manager import JourneyManager
 from src.engine.journey_engine import JourneyEngine
 from src.agents.journey_builder_agent import JourneyBuilderAgent
 
+import sys
+import os
+# Añadir el root del repo al path para encontrar el módulo channels
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..', '..'))
+from channels.meta.webhook import router as meta_router
+
 import structlog
 log = structlog.get_logger()
 
@@ -41,6 +47,7 @@ app.add_middleware(
 
 
 app.include_router(wiki_router)
+app.include_router(meta_router, prefix="")
 
 
 @app.on_event("startup")
