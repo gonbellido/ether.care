@@ -91,14 +91,14 @@ async def execute_journey_step(req: JourneyExecuteRequest):
 
     # 1. Obtener estado actual
     state = await jm.get_session_state(req.session_id)
-    current_step = state["step"]
+    current_step_num = state["step"]
     session_data = state["data"]
 
     # 2. Ejecutar paso con el engine
     try:
         result = await engine.execute_step(
             journey_id=req.journey_id,
-            current_step_num=current_step,
+            current_step_num=current_step_num,
             user_message=req.user_message,
             session_data=session_data
         )
@@ -106,10 +106,17 @@ async def execute_journey_step(req: JourneyExecuteRequest):
         log.error("Error en execute_step", error=str(e))
         raise HTTPException(status_code=500, detail=str(e))
 
-    # 3. Actualizar estado
-    # Si el next_step es igual al current_step y ya hay datos, podríamos considerar avanzar
-    # Pero el engine ya decide el next_step basado en la lógica del JSON.
+    # 3. Obtener nombre del paso actual del JSON
+    step_name = f"Paso {current_step_num}"
+    try:
+        journey = engine._load_journey_file(req.journey_id)
+        current_step_config = next((s for s in journey["steps"] if s["step"] == current_step_num), None)
+        if current_step_config:
+            step_name = current_step_config["name"]
+    except Exception as e:
+        log.warning("No se pudo cargar el nombre del paso", error=str(e))
 
+    # 4. Actualizar estado
     await jm.update_session_state(
         session_id=req.session_id,
         user_id=req.user_id,
@@ -121,9 +128,9 @@ async def execute_journey_step(req: JourneyExecuteRequest):
     return {
         "response_text": result["response_text"],
         "next_step": result["next_step"],
-        "step_name": f"Paso {result['next_step']}", # Podríamos sacar el nombre real del JSON
+        "step_name": step_name,
         "extracted_data": result["extracted_data"],
-        "session_complete": result["next_step"] >= 10 and state["step"] == 10
+        "session_complete": result["next_step"] >= 10 and current_step_num == 10
     }
 
 

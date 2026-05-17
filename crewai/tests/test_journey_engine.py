@@ -2,6 +2,7 @@ import asyncio
 import json
 import os
 import sys
+import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
 
 # Mock settings and its dependencies
@@ -16,6 +17,7 @@ if parent_dir not in sys.path:
 
 from src.engine.journey_engine import JourneyEngine
 
+@pytest.mark.asyncio
 async def test_engine_loading():
     with patch('src.engine.journey_engine.get_settings', return_value=mock_settings):
         engine = JourneyEngine()
@@ -25,6 +27,7 @@ async def test_engine_loading():
         assert journey["journey_id"] == "diagnostico_psicologico_v1"
         assert len(journey["steps"]) == 10
 
+@pytest.mark.asyncio
 async def test_extraction():
     with patch('src.engine.journey_engine.get_settings', return_value=mock_settings):
         engine = JourneyEngine()
@@ -32,6 +35,7 @@ async def test_extraction():
         data = engine._extract_json(text)
         assert data["nombre"] == "Juan"
 
+@pytest.mark.asyncio
 async def test_condition_evaluation():
     with patch('src.engine.journey_engine.get_settings', return_value=mock_settings):
         engine = JourneyEngine()
