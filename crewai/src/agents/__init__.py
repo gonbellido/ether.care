@@ -3,3 +3,4 @@ from .profiler_agent import ProfilerAgent
 from .advisor_agent import AdvisorAgent
 from .base_agent import EsoterBaseAgent
 from .knowledge_curator_agent import KnowledgeCuratorAgent
+from .journey_builder_agent import JourneyBuilderAgent

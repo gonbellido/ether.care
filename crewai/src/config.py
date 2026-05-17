@@ -34,6 +34,7 @@ class Settings(BaseSettings):
     # LLMs
     anthropic_api_key: str = ""
     deepseek_api_key: str = ""
+    admin_api_key: str = ""
     kimi_api_key: str = ""
 
     # Stripe

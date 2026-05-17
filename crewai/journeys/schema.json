@@ -3,7 +3,7 @@
   "title": "Journey Specification",
   "type": "object",
   "properties": {
-    "journey_id": { "type": "string" },
+    "journey_id": { "type": "string", "pattern": "^[a-z0-9-]+$" },
     "name": { "type": "string" },
     "version": { "type": "string" },
     "description": { "type": "string" },
