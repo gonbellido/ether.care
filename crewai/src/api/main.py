@@ -25,7 +25,7 @@ from src.agents.journey_builder_agent import JourneyBuilderAgent
 import sys
 import os
 # Añadir el root del repo al path para encontrar el módulo channels
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..', '..'))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..'))
 from channels.meta.webhook import router as meta_router
 
 import structlog
